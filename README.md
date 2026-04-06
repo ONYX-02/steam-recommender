@@ -15,7 +15,7 @@ Instead of basic genre matching, this engine uses a **Hybrid Recommendation Syst
 
 The repository is built with a clean Separation of Concerns:
 
-'''text
+```text
 STEAM-RECOMMENDER/
 │
 ├── app.py                 # Streamlit frontend UI & caching
@@ -33,6 +33,7 @@ STEAM-RECOMMENDER/
     ├── process_dataset.ipynb
     ├── scraper.ipynb
     └── train_model.ipynb
+```
 
 ## Tech Stack
 * **Language** Python

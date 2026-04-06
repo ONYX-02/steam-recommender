@@ -1,6 +1,5 @@
 import streamlit as st
 import pickle
-from sklearn.metrics.pairwise import cosine_similarity
 from engine import get_recommendations
 
 st.set_page_config(page_title="Steam Game Recommender", layout="centered")

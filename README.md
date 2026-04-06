@@ -1,32 +1,37 @@
-# Steam Game Hybrid Recommendation Engine
+# Steam Game Recommender
 
-An end-to-end data pipeline and hybrid recommendation system that suggests Steam games based on both **player behavior** (Collaborative Filtering) and
-**game tags** (Content-Based NLP).
+A machine learning-powered web application that recommends Steam games based on your favorites. 
 
-## Project Overview
-Most recommendation engines only use either content only or behavior only. This project solves both by blending mathematical matrices from two distinct
-data sources:
-1. **User Interaction Data** Processed from a massive dataset of Steam player reviews and playtimes using memory-efficient chunking.
-   (Dataset Link: https://www.kaggle.com/datasets/kieranpoc/steam-reviews)
-2. **Community Metadata** Scraped dynamically from the SteamSpy API to capture tags, review scores and genres.
+Instead of basic genre matching, this engine uses a **Hybrid Recommendation System** combining Natural Language Processing (TF-IDF on game tags/descriptions) and Collaborative Filtering (Truncated SVD) to find deep, nuanced similarities between over 15,000 games. It instantly calculates matches on the fly and fetches live header images directly from the Steam CDN.
 
-## The Architecture
-### 1. The Collaborative Brain (SVD)
-* Built a sparse User-Item matrix mapping players to hours played.
-* Applied a **Logorithmic Transformation ('np.log1p')** to normalize playtime, to prevent games with many hours played from skewing geometry.
-* Reduced dimensionality using **TruncatedSVD (Singular Value Decomposition)** to uncover hidden player archetypes
+## Features
+* **Hybrid ML Engine:** Blends TF-IDF and SVD algorithms for high-quality recommendations.
+* **Smart Filtering:** Automatically detects and filters out direct sequels/prequels to force the algorithm to find *new* franchises.
+* **Quality Control:** Penalizes games with "Mixed" or "Negative" Steam review ratios, bubbling up "Overwhelmingly Positive" hidden gems.
+* **On-The-Fly Computation:** Matrix math is calculated dynamically in milliseconds, bypassing the need for massive $O(N^2)$ gigabyte storage files.
+* **Clean UI:** Built with Streamlit for a fast, responsive, and visual user experience.
 
-### 2. The Content Brain (NLP)
-* Utilized **TF-IDF (Term Frequency-Inverse Document Frequency)** on the "bag of words" from SteamSpy community tags.
-* Transforms game mechanics (e.g., "Post-Apocalyptic", "RPG") into spatial vectors to measure cosine similarity between titles.
+## Project Structure
 
-### 3. The Custom Data Pipeline & Web Scraper
-* Built a custom Python scraper with error handling and request throttling to extract metadata from SteamSpy.
-* **NSFW/Troll Filter** Engineered a "Top-4 Tag" filter to dynamically detect and ban explicitly mature games, while bypassing community "troll tags" on innocent games (like LEGO titles).
+The repository is built with a clean Separation of Concerns:
 
-### 4. Algorithmic Guardrails
-* **The Sequel Filter** NLP-based title parsing that prevents the engine from recommending games from the same franchise (e.g., searching for *Fallout 4* won't just return *Fallout: New Vegas*).
-* **The Quality Penalty** Dynamically scales the final Hybrid Score against the game's official Steam Approval Rating, pushing poorly reviewed games to the bottom of the recommendations.
+STEAM-RECOMMENDER/
+│
+├── app.py                 # Streamlit frontend UI & caching
+├── engine.py              # Backend machine learning logic & math
+├── requirements.txt       # Python dependencies (Streamlit, scikit-learn, etc.)
+│
+├── model/                 # Compiled, lightweight base matrices
+│   ├── game_titles.pkl
+│   ├── name_to_id.pkl
+│   ├── review_dict.pkl
+│   ├── svd_matrix.pkl
+│   └── tfidf_matrix.pkl
+│
+└── notebook/              # ETL pipelines and model training
+    ├── process_dataset.ipynb
+    ├── scraper.ipynb
+    └── train_model.ipynb
 
 ## Tech Stack
 * **Language** Python
@@ -35,15 +40,13 @@ data sources:
 * **Data Ingestion** Requests, JSON, Steam API / SteamSpy API
 
 ## How to Run Locally
-Note: The raw Steam user dataset is too large to host on GitHub, but the final scraped metdata (tags, review scores) is included as JSON files so you can run the
-train_model.ipynb file immediately
+Note: The raw CSV datasets are not included in this repository to save space. The web app runs entirely off the pre-processed `.pkl` matrices in the `model/` folder. If you wish to re-train the model from scratch, you will need to run the web scraper notebook to generate a fresh dataset.
 1. Clone the repository.
-2. Download the Steam Reviews dataset (link above) to a folder named "data" in the base directory.
-2. Ensure you have your `.env` file configured with your local paths/keys.
-3. Run the data chunking script to compress the raw Steam dataset.
-4. Run the Master Scraper to build the local metadata JSONs.
-5. Execute the Jupyter Notebook to build the matrices and run the `get_recommendations()` function.
+2. (Optional, but recommended) Set up the virtual environment
+3. Install dependencies:
+   - pip install streamlit pandas numpy scikit-learn
+4. From the "steam-recommender" folder, run the following command:
+   - streamlit run app.py
 
 ## Future Improvements
-* Build a frontend for real-time user interaction.
-* Integrate the official Steam API to fetch modern (2024+) titles and bypass the 2022 dataset limitation.
+* Integrate the official Steam API to fetch more titles and bypass the dataset limitation.
